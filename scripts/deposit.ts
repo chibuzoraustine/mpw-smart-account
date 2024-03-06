@@ -1,4 +1,4 @@
-const hre = require("hardhat");
+import hre from "hardhat"
 
 const EP_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 const PM_ADDRESS = "0x31bA9B169E3E0B9766233D63bC657d98c5DaA46F";

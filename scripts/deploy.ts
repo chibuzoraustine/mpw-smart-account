@@ -1,4 +1,4 @@
-const hre = require("hardhat");
+import hre from "hardhat"
 
 async function main() {
   const af = await hre.ethers.deployContract("AccountFactory");

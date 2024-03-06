@@ -1,4 +1,4 @@
-const hre = require("hardhat");
+import hre from "hardhat"
 
 const ACCOUNT_ADDR = "0xe892ff77c348d03f6eaeafa75ccf73e982cb7937";
 

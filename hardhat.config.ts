@@ -1,16 +1,17 @@
-require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config();
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
+import "dotenv/config"
 
-module.exports = {
+const config: HardhatUserConfig =  {
   defaultNetwork: "arbitrum",
   networks: {
     arbitrum: {
       url: process.env.ARBITRUM_RPC_URL,
-      accounts: [process.env.TEST_PRIVATE_KEY, process.env.TEST_PRIVATE_KEY2, process.env.TEST_PRIVATE_KEY3],
+      accounts: [process.env.TEST_PRIVATE_KEY!, process.env.TEST_PRIVATE_KEY2!, process.env.TEST_PRIVATE_KEY3!],
     },
   },
   solidity: {
-    version: "0.8.24",
+    version: "0.8.19",
     settings: {
       optimizer: {
         enabled: true,
@@ -19,3 +20,5 @@ module.exports = {
     },
   },
 };
+
+export default config;

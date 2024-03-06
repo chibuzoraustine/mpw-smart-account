@@ -1,9 +1,9 @@
-const hre = require("hardhat");
-const crypto = require('crypto');
+import hre from "hardhat"
+import crypto from "crypto"
 
 const ACCOUNT_ADDR = "0xe892ff77c348d03f6eaeafa75ccf73e982cb7937";
 
-function hashData(data) {
+function hashData(data:any) {
   const str = JSON.stringify(data);
   const hash = crypto.createHash('sha256');
   hash.update(str);

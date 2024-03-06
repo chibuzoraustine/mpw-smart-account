@@ -1,22 +1,22 @@
-const hre = require("hardhat");
-const crypto = require('crypto');
+import hre from "hardhat";
+import crypto from "crypto"
 
 const FACTORY_ADDRESS = "0x43dA92C8Ddd8d62A6CF46A2087bDF9e9F127C32F";
 const EP_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 const ACCOUNT_ADDR = "0x20830ce1b0b7b04b2f24117bf09ba8cc4c6bc880";
 
-function hashData(data) {
+function hashData(data: any) {
   const str = JSON.stringify(data);
   const hash = crypto.createHash('sha256');
   hash.update(str);
   return hash.digest('hex');
 }
 
-function padHexString(hexString) {
+function padHexString(hexString: any) {
   return '0x' + hexString.padStart(64, '0');
 }
 
-function toBytes(data) {
+function toBytes(data: any) {
   return hre.ethers.getBytes(data);
 }
 
@@ -39,14 +39,14 @@ async function main() {
       .encodeFunctionData("createAccount", [adminAddress, userAccountSalt])
       .slice(2);
 
-  let userAddress;
+  let userAddress:string = "";
   try {
     await entryPoint.getSenderAddress(initCode);
-  } catch (ex) {
+  } catch (ex: any) {
     userAddress = "0x" + ex.data.slice(-40);
   }
 
-  const code = await ethers.provider.getCode(userAddress);
+  const code = await hre.ethers.provider.getCode(userAddress);
   if (code == "0x") {
     console.log("Make at least one transaction before adding signers");
     process.exit(1)
