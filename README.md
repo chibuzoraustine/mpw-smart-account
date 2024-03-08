@@ -18,7 +18,7 @@ Authenticate user
   - email
   - password
 
-The access token gotten afetr authenticating will be used to access the remaining routes
+The access token gotten after authenticating will be used to access the remaining routes
 
 ## User
 
