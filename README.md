@@ -1,13 +1,38 @@
-# Sample Hardhat Project
+# MPW Smart Account
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+Rename .env.example to .env
+Fill in the required informations
 
-Try running some of the following tasks:
+Endpoints include
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
-```
+## Authenticateion
+Authenticate user
+- /auth/register
+  - email
+  - firstname
+  - lastname
+  - password
+- /auth/login
+  - email
+  - password
+
+## User
+View user bio
+- /user
+
+## Wallet
+Manage smart wallet
+
+- /wallet/user -create user wallet
+  - chain
+  - type
+  - 
+- /wallet/user -create dynamic wallet
+  - chain
+  - type
+  - reference_code
+  - user
+  - amount
+  - expires (optional)
+
+-
