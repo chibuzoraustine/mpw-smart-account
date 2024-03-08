@@ -34,5 +34,7 @@ Manage smart wallet
   - user
   - amount
   - expires (optional)
-
--
+- /wallet/user/add_cosigner
+  - wallet_address
+  - cosigner_address
+  - signatures (optional)
