@@ -1,3 +1,5 @@
+import { BigNumberish } from "ethers";
+
 export interface IResourceBuilder<T> {
     data: T | T[],
     meta_data?: {
@@ -15,4 +17,10 @@ export interface IResourceBuilder<T> {
 export type IAuthRequestUser = {
     id: string,
     email: string
+}
+
+export interface CallData {
+    to: string;
+    value: BigNumberish;
+    data: string;
 }

@@ -1,8 +1,9 @@
 import hre from "hardhat"
 import crypto from "crypto"
 import { UserOperationStruct } from "../typechain-types/contracts/Account.sol/Account";
+import { AlchemyProvider, JsonRpcProvider } from "ethers";
 
-const FACTORY_ADDRESS = "0x43dA92C8Ddd8d62A6CF46A2087bDF9e9F127C32F";
+const FACTORY_ADDRESS = "0xDb59a1e7837b5198C225DF8f582F2C453e6073F1";
 const ENTRYPOINT_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 const PAYMASTER_ADDRESS = "0x31bA9B169E3E0B9766233D63bC657d98c5DaA46F";
 
@@ -40,8 +41,10 @@ async function main() {
     let initCode =
         FACTORY_ADDRESS +
         AccountFactory.interface
-            .encodeFunctionData("createAccount", [adminAddress, userAccountSalt])
+            .encodeFunctionData("createAccount", [adminAddress, userAccountSalt, ENTRYPOINT_ADDRESS])
             .slice(2);
+
+    // console.log('init code', initCode)
 
     let userAddress = "";
     try {
@@ -57,22 +60,60 @@ async function main() {
 
     console.log({ userAddress });
 
+    const tokenContract = new hre.ethers.Contract("0x9fBd528bA31F59c835e8507EF5c61c83c190504e", [
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "num",
+                    "type": "uint256"
+                }
+            ],
+            "name": "store",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "retrieve",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ]);
+    const tnxData = tokenContract.interface.encodeFunctionData("store", [2222]);
+
     // initialize userOp
     const Account = await hre.ethers.getContractFactory("Account");
+
+    const callData = Account.interface.encodeFunctionData("execute", ["0x9fBd528bA31F59c835e8507EF5c61c83c190504e", 0, tnxData]);
+
     const userOp: Partial<UserOperationStruct> = {
         sender: userAddress, // smart account address
         nonce: "0x" + (await entryPoint.getNonce(userAddress, 0)).toString(16),
         initCode,
-        callData: Account.interface.encodeFunctionData("execute"),
+        callData,
         paymasterAndData: PAYMASTER_ADDRESS,
         signature: getDummySignatureByTotalSignersLength(3),
     };
 
     const { preVerificationGas, verificationGasLimit, callGasLimit } =
-        await hre.ethers.provider.send("eth_estimateUserOperationGas", [
+        await new AlchemyProvider("arbitrum-sepolia", "m-5XfdCcVmgvaBrKpPrDddiSnz9cIxZP").provider.send("eth_estimateUserOperationGas", [
             userOp,
             ENTRYPOINT_ADDRESS,
         ]);
+
+    await hre.ethers.provider.send("eth_estimateUserOperationGas", [
+        userOp,
+        ENTRYPOINT_ADDRESS,
+    ]);
 
     console.log("preVerificationGas", parseInt(preVerificationGas))
     console.log("verificationGasLimit", parseInt(verificationGasLimit))
@@ -99,7 +140,7 @@ async function main() {
     const signature0 = await adminSigner0.signMessage(hre.ethers.getBytes(userOpHash));
     const signature1 = await adminSigner1.signMessage(hre.ethers.getBytes(userOpHash));
     const signature2 = await adminSigner2.signMessage(hre.ethers.getBytes(userOpHash));
-    userOp.signature = signature0 + signature1.slice(2) + signature2.slice(2);
+    userOp.signature = signature0 //+ signature1.slice(2) + signature2.slice(2);
 
     console.log(userOp.signature);
 

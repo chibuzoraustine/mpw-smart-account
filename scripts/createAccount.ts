@@ -1,7 +1,7 @@
 import hre from "hardhat"
 import crypto from "crypto"
 
-const FACTORY_ADDRESS = "0x43dA92C8Ddd8d62A6CF46A2087bDF9e9F127C32F";
+const FACTORY_ADDRESS = "0xDb59a1e7837b5198C225DF8f582F2C453e6073F1";
 const EP_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 // const PM_ADDRESS = "0x31bA9B169E3E0B9766233D63bC657d98c5DaA46F";
 
@@ -32,7 +32,7 @@ async function main() {
     let initCode =
         FACTORY_ADDRESS +
         AccountFactory.interface
-            .encodeFunctionData("createAccount", [adminAddress, userAccountSalt])
+            .encodeFunctionData("createAccount", [adminAddress, userAccountSalt, EP_ADDRESS])
             .slice(2);
 
     let userAddress = "";

@@ -1,7 +1,7 @@
 import hre from "hardhat";
 import crypto from "crypto"
 
-const FACTORY_ADDRESS = "0x43dA92C8Ddd8d62A6CF46A2087bDF9e9F127C32F";
+const FACTORY_ADDRESS = "0xDb59a1e7837b5198C225DF8f582F2C453e6073F1";
 const EP_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 const ACCOUNT_ADDR = "0x20830ce1b0b7b04b2f24117bf09ba8cc4c6bc880";
 
@@ -36,7 +36,7 @@ async function main() {
   let initCode =
     FACTORY_ADDRESS +
     AccountFactory.interface
-      .encodeFunctionData("createAccount", [adminAddress, userAccountSalt])
+      .encodeFunctionData("createAccount", [adminAddress, userAccountSalt, EP_ADDRESS])
       .slice(2);
 
   let userAddress:string = "";
@@ -68,11 +68,21 @@ async function main() {
   const jointSig = signature0 + signature1.slice(2);
   console.log('Joint sig', jointSig)
 
-  const tnx = await account.addSigner(newSigner, jointSig);
-  await tnx.wait();
+  try {
+    const tnx = await account.addSigner(newSigner, jointSig);
+    await tnx.wait();
+  } catch (error: any) {
+    if (error.message && error.message.includes("New owner already exists")) {
+      // Handle the specific error message
+      console.error("New owner already exists");
+  } else {
+      // Handle other errors
+      console.error(error);
+  }
+  }
 
-  const signers = await account.getSigners();
-  console.log(signers)
+  // const signers = await account.getSigners();
+  // console.log(signers[0])
 }
 
 main().catch((error) => {

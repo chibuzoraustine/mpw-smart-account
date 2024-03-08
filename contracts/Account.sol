@@ -7,12 +7,23 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 
 contract Account is IAccount {
+    IEntryPoint public immutable entryPoint;
     uint256 public count;
+    address public admin;
     address[] public signers;
     mapping(address => bool) public isSigner;
     uint256 public signersNonce;
+    error NotAuthorizedCaller();
 
-    constructor(address initialOwner) {
+    struct Call {
+        address to;
+        uint256 value;
+        bytes data;
+    }
+
+    constructor(address initialOwner, IEntryPoint _entryPoint) {
+        entryPoint = _entryPoint;
+        admin = initialOwner;
         signers.push(initialOwner);
         isSigner[initialOwner] = true;
     }
@@ -78,6 +89,7 @@ contract Account is IAccount {
         address signer,
         bytes calldata jointSignature
     ) external {
+        require(signer != admin, "Can not delete admin");
         require(isSigner[signer], "Invalid signer");
 
         // Compute the messageHash based on signer and nonce
@@ -139,25 +151,124 @@ contract Account is IAccount {
         return signers;
     }
 
-    function execute() external {
-        count++;
+    /// @notice Executes a function call to an external contract
+    /// @param to The address of the target contract
+    /// @param value The amount of Ether to send
+    /// @param data The call data to be sent
+    function execute(
+        address to,
+        uint256 value,
+        bytes memory data
+    ) external payable {
+        if (msg.sender != address(entryPoint) && msg.sender != address(this)) {
+            revert NotAuthorizedCaller();
+        }
+        assembly {
+            let success := call(
+                gas(),
+                to,
+                value,
+                add(data, 0x20),
+                mload(data),
+                0,
+                0
+            )
+            returndatacopy(0, 0, returndatasize())
+            switch success
+            case 0 {
+                revert(0, returndatasize())
+            }
+            default {
+                return(0, returndatasize())
+            }
+        }
+    }
+
+    /// @notice Executes a function call to an external contract with delegatecall
+    /// @param to The address of the target contract
+    /// @param data The call data to be sent
+    function executeDelegateCall(
+        address to,
+        bytes memory data
+    ) external payable {
+        if (msg.sender != address(entryPoint) && msg.sender != address(this)) {
+            revert NotAuthorizedCaller();
+        }
+        assembly {
+            let success := delegatecall(
+                gas(),
+                to,
+                add(data, 0x20),
+                mload(data),
+                0,
+                0
+            )
+            returndatacopy(0, 0, returndatasize())
+            switch success
+            case 0 {
+                revert(0, returndatasize())
+            }
+            default {
+                return(0, returndatasize())
+            }
+        }
+    }
+
+    /// @notice Executes a function call to an external contract batched
+    /// @param calls The calls to be executed, in order
+    /// @dev operation deprecated param, use executeBatch for batched transaction
+    function executeBatch(Call[] memory calls) external payable {
+        if (msg.sender != address(entryPoint)) {
+            revert NotAuthorizedCaller();
+        }
+        uint256 len = calls.length;
+        for (uint256 i = 0; i < len; ) {
+            Call memory call = calls[i];
+            address to = call.to;
+            uint256 value = call.value;
+            bytes memory data = call.data;
+            assembly {
+                let success := call(
+                    gas(),
+                    to,
+                    value,
+                    add(data, 0x20),
+                    mload(data),
+                    0,
+                    0
+                )
+                switch success
+                case 0 {
+                    returndatacopy(0, 0, returndatasize())
+                    revert(0, returndatasize())
+                }
+                default {
+                    i := add(i, 1)
+                }
+            }
+        }
     }
 }
 
 contract AccountFactory {
     function createAccount(
         address owner,
-        bytes32 salt
+        bytes32 salt,
+        IEntryPoint entryPoint
     ) external returns (address) {
         // bytes32 salt = bytes32(uint256(uint160(owner)));
         bytes memory creationCode = type(Account).creationCode;
         bytes memory bytecode = abi.encodePacked(
             creationCode,
-            abi.encode(owner)
+            abi.encode(owner),
+            abi.encode(entryPoint)
         );
 
         address addr = Create2.computeAddress(salt, keccak256(bytecode));
-        uint256 codeSize = addr.code.length;
+        uint256 codeSize;
+        assembly {
+            codeSize := extcodesize(addr)
+        }
         if (codeSize > 0) {
             return addr;
         }

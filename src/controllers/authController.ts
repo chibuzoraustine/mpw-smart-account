@@ -24,7 +24,7 @@ export const register = async (req: Request, res: Response) => {
 
         // @dev Calculate the expiration time for the token
         const _currentDateTime = new Date(); // Get the current date and time
-        const _expirationTime = new Date(_currentDateTime.getTime() + 2 * 60 * 60 * 1000);
+        const _expirationTime = new Date(_currentDateTime.getTime() + 4 * 60 * 60 * 1000);
 
         await accessTokenModel.create({
             token: jwtToken,
@@ -62,7 +62,7 @@ export const login = async (req: Request, res: Response) => {
         
         // @dev Calculate the expiration time for the token
         const _currentDateTime = new Date(); // Get the current date and time
-        const _expirationTime = new Date(_currentDateTime.getTime() + 2 * 60 * 60 * 1000);
+        const _expirationTime = new Date(_currentDateTime.getTime() + 4 * 60 * 60 * 1000);
 
         await accessTokenModel.create({
             token: jwtToken,

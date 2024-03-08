@@ -1,0 +1,1 @@
+export const DYNAMIC_WALLET_SERVICE_CHARGE_PERCENTAGE:number = 0.1;
